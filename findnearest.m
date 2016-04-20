@@ -6,6 +6,8 @@ function [n1, n2, ni1, ni2, distvector] = findnearest(varargin)
 % the original function had a sort, which is awfully slow!!!!
 %so I am rewriting to see if I can make it better
 %
+% I think pdist2 'smallest' is much faster than this, but I haven't
+% benchmarked it...
 
 if isempty(varargin)||strcmp(varargin{1},'test')
     findnearest_test()

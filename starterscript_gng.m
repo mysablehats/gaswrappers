@@ -16,16 +16,16 @@ params.amax = 500; %greatest allowed age
 params.nodes = NODES; %maximum number of nodes/neurons in the gas
 params.en = 0.006; %epsilon subscript n
 params.eb = 0.2; %epsilon subscript b
+params.MAX_EPOCHS = 3;  % this means data will be run over MAX_EPOCHS times
 
-%Exclusive for gwr
-params.STATIC = true;
-params.MAX_EPOCHS = 1; % this means data will be run over twice
-params.at = 0.80; %activity threshold
-params.h0 = 1;
-params.ab = 0.95;
-params.an = 0.95;
-params.tb = 3.33;
-params.tn = 3.33;
+% %Exclusive for gwr
+% params.STATIC = true;
+% params.at = 0.80; %activity threshold
+% params.h0 = 1;
+% params.ab = 0.95;
+% params.an = 0.95;
+% params.tb = 3.33;
+% params.tn = 3.33;
 
 %Exclusive for gng
 params.age_inc                  = 1;
