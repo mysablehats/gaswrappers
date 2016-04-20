@@ -4,7 +4,7 @@ function plotgwr(varargin)
 %dbgmsg('Plots gwr (or gng as well). Either in 2 or 3 dimensions. Handles 75 dimension and 72 dimension skeletons gracefully')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin == 0
-    clear all
+    theactualplot('','','', '', 'clear')
     return
 else
     [A,C, error_vect, epoch_vect, nodes, skelldef, layertype] = varargin{:};
@@ -152,6 +152,11 @@ end
 end
 function theactualplot(A, error_vect, epoch_vect, nodes, varargin)
 persistent hdl_main hdl_main_p hdl_error hdl_nodes axmain %axmaincopy
+
+if strcmp(varargin{1},'clear')
+    clear hdl_main hdl_main_p hdl_error hdl_nodes axmain
+    return
+end
 
 if isempty(hdl_main)||isempty(hdl_error)||isempty(hdl_nodes) % initialize the plot window
     axmain = subplot(1,2,1);

@@ -4,16 +4,19 @@ classdef gas
         A
         C
         C_age
+        errorvector
         hizero
         hszero
         time
         t0
+        n
         r
         h
         a
         awk
         ni1
         ni2
+        n1n2
     end
     methods
         function X = hs(gasgas, t)
@@ -31,7 +34,7 @@ classdef gas
         function X = S(~,t)
             X = 1;
         end
-        function [n1,n2, ni1,ni2] = initialnodes(gasgas, data)
+        function [n1n2, ni1,ni2] = initialnodes(gasgas, data)
             
             RANDOMSTART = gasgas.params.RANDOMSTART;
             
@@ -40,9 +43,9 @@ classdef gas
             ni1 = 1;
             ni2 = 2;
             if RANDOMSTART
-                n = randperm(size(data,2),2);
-                ni1 = n(1);
-                ni2 = n(2);
+                nn = randperm(size(data,2),2);
+                ni1 = nn(1);
+                ni2 = nn(2);
             elseif isfield(gasgas.params,'startingpoint')&&~isempty('params.startingpoint')
                 ni1 = gasgas.params.startingpoint(1);
                 ni2 = gasgas.params.startingpoint(2);
@@ -59,16 +62,12 @@ classdef gas
             else
                 n2 = data(:,ni2);
             end
-            
+            n1n2 = [n1, n2];
         end
         function gasgas = gas_create(gasgas, params,data)
             gasgas.params = params;
-            
-            [n1,n2, gasgas.ni1,gasgas.ni2] = initialnodes(gasgas, data);
-            
-            gasgas.A = zeros(size(n1,1),params.nodes);
-            gasgas.A(:,[1 2]) = [n1, n2];
-            
+            [gasgas.n1n2, gasgas.ni1,gasgas.ni2] = initialnodes(gasgas, data);
+        
             %%%%%% NEW ADDITION: the adjusting weighting constant parameter
             %%%% this is not so simple because the input vectors
             if isfield(gasgas.params, 'skelldef')&&isfield(gasgas.params.skelldef, 'awk')&&isfield(params, 'layertype')
@@ -84,15 +83,42 @@ classdef gas
                     n1.*gasgas.awk;
                 catch
                     dbgmsg('Tried to use your awk definition, but I failed.',1)
-                    gasgas.awk = ones(size(n1,1),1);
+                    gasgas.awk = ones(size(gasgas.n1n2,1),1);
                 end
             else
-                gasgas.awk = ones(size(n1,1),1);
+                gasgas.awk = ones(size(gasgas.n1n2,1),1);
             end
+        end
+        function gasgas = gng_create(gasgas,params,data)
+            
+            gasgas = gasgas.gas_create(params,data);
+            
+            %%% gng specific init
+                        
+            gasgas.A = zeros(size(gasgas.n1n2,1),2);
+            gasgas.A(:,[1 2]) = gasgas.n1n2;
+                        
+            % Initial connections (edges) matrix.
+            edges = [0  1;
+                1  0;];
+            gasgas.C = edges;
+            % Initial ages matrix.
+            ages = [ NaN  0;
+                0  NaN;];
+            gasgas.C_age = ages;
+            % Initial Error Vector.
+            gasgas.errorvector = [0 0];
+            
+            gasgas.n = 0; %samplercounter
+            
         end
         function gasgas = gwr_create(gasgas, params, data)
             
             gasgas = gasgas.gas_create(params,data);
+       
+ 
+            gasgas.A = zeros(size(gasgas.n1n2,1),params.nodes);
+            gasgas.A(:,[1 2]) = gasgas.n1n2;
             
             %%%gwr specific initialization
             %test some algorithm conditions:

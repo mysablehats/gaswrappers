@@ -19,7 +19,7 @@ params.eb = 0.2; %epsilon subscript b
 
 %Exclusive for gwr
 params.STATIC = true;
-params.MAX_EPOCHS = 50; % this means data will be run over twice
+params.MAX_EPOCHS = 1; % this means data will be run over twice
 params.at = 0.80; %activity threshold
 params.h0 = 1;
 params.ab = 0.95;
@@ -28,6 +28,7 @@ params.tb = 3.33;
 params.tn = 3.33;
 
 %Exclusive for gng
+params.age_inc                  = 1;
 params.lambda                   = 3;
 params.alpha                    = .5;     % q and f units error reduction constant.
 params.d                           = .99;   % Error reduction factor.
@@ -35,7 +36,7 @@ params.d                           = .99;   % Error reduction factor.
 
 
 tic
-A = gas_wrapper(Data,params,'gwr');
+A = gas_wrapper(Data,params, 'gng');
 subplot(1,2,1);
 hold on
 plot(Data(1,:),Data(2,:), '.g', A(1,:)', A(2,:)', '.r')
