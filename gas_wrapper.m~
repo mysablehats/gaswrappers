@@ -135,6 +135,8 @@ switch gastype
         error('Unknown method.')
 end
 
+therealk = 0; %% a real counter for epochs
+
 %%% ok, I will need to be able to resume working on a gas if I want to
 if isfield(params, 'savegas')&&params.savegas.resume
     savegas = strcat(params.savegas.path,'/', params.savegas.name);
@@ -164,11 +166,6 @@ if isfield(params, 'savegas')&&params.savegas.resume
 else
     dbgmsg('Didn''t find gas with the same characteristics as this one. Will use a new gas with name:',params.savegas.name,1)
 end
-
-
-therealk = 0; %% a real counter for epochs
-
-%%%starting main loop
 
 for num_of_epochs = 1:MAX_EPOCHS % strange idea: go through the dataset more times - actually this makes it overfit the data, but, still it is interesting.
 

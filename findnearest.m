@@ -6,7 +6,7 @@ function [n1, n2, ni1, ni2, distvector] = findnearest(varargin)
 % the original function had a sort, which is awfully slow!!!!
 %so I am rewriting to see if I can make it better
 %
-% I think pdist2 'smallest' is much faster than this, but I haven't
+% I think pdist2 'smallest' is perhaps faster than this, but I haven't
 % benchmarked it...
 
 if isempty(varargin)||strcmp(varargin{1},'test')
@@ -17,17 +17,25 @@ else
     
 %     if length(varargin)>=3&&strcmp(varargin{3},'slow') %% this is the fastest
 %         
-%         [n1, n2, ni1, ni2, distvector] = findnearest_slow(p,data);
+%         [n1, n2, ni1, ni2, distvector] = findnearest_1(p,data);
 %         
 %     elseif length(varargin)>=3&&strcmp(varargin{3},'notsofast')
 %         
-%         [n1, n2, ni1, ni2, distvector] = findnearest_faster(p,data);
+%         [n1, n2, ni1, ni2, distvector] = findnearest_3(p,data);
 %     elseif length(varargin)>=3&&strcmp(varargin{3},'bad')
 %         
-%         [n1, n2, ni1, ni2, distvector] = findnearest_fastest(p,data);
+%         [n1, n2, ni1, ni2, distvector] = findnearest_4(p,data);
 %     else
-         [n1, n2, ni1, ni2, distvector] = findnearest_fast(p,data);
-%    end
+% try
+%     [distvector,I] = pdist2(data',p', 'euclidean', 'Smallest',2);
+%     ni1 = I(1,:);
+%     ni2 = I(2,:);
+%     n1 = data(:,ni1);
+%     n2 = data(:,ni2);
+% catch
+         [n1, n2, ni1, ni2, distvector] = findnearest_2(p,data);
+% end
+%          %    end
 end
 end
 function findnearest_test()
@@ -103,7 +111,7 @@ toc()
 
 
 end
-function [n1, n2, ni1, ni2, distvector] = findnearest_slow(p,data)
+function [n1, n2, ni1, ni2, distvector] = findnearest_1(p,data)
 maxindex = size(data,2);
 distvector = zeros(1,maxindex);
 for i = 1:maxindex
@@ -115,7 +123,7 @@ ni2 = index(2);
 n1 = data(:,ni1);
 n2 = data(:,ni2);
 end
-function [n1, n2, ni1, ni2, distvector] = findnearest_fast(p,data)
+function [n1, n2, ni1, ni2, distvector] = findnearest_2(p,data)
 maxindex = size(data,2);
 distvector = zeros(1,maxindex);
 for i = 1:maxindex
@@ -129,7 +137,7 @@ distvector(ni1) = NaN; % I use some cleverness. Hopefully this is fast.
 n2 = data(:,ni2);
 distvector(ni1) = pushdist;
 end
-function [n1, n2, ni1, ni2, distvector] = findnearest_faster(p,data)
+function [n1, n2, ni1, ni2, distvector] = findnearest_3(p,data)
 maxindex = size(data,2);
 distvector = inf(1,maxindex);
 ni1 = 0;
@@ -150,7 +158,7 @@ end
 n1 = data(:,ni1);
 n2 = data(:,ni2);
 end
-function [n1, n2, ni1, ni2, distvector] = findnearest_fastest(p,data)
+function [n1, n2, ni1, ni2, distvector] = findnearest_4(p,data)
 maxindex = size(data,2);
 distvector = inf(1,maxindex);
 ni1 = 0;
