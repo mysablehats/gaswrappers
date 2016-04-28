@@ -1,4 +1,4 @@
-function [A, C ,outparams] = gas_wrapper(data,arq_connect)
+function [A, C ,outparams] = gas_wrapper(data,varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %cf parisi, 2015 and cf marsland, 2002
 %based on the GNG algorithm from the guy that did the GNG algorithm for
@@ -30,14 +30,28 @@ global VERBOSE LOGIT
 VERBOSE = true;
 LOGIT = true;
 
+if nargin == 3
+    params = varargin{1};
+    gastype = varargin{2};
+    arq_connect = struct();
+else
+    gastype = [];
+end
+
+
 if isfield(arq_connect, 'params')&&~isempty(arq_connect.params)
     params = arq_connect.params;
 end
 if isfield(arq_connect, 'method')&&~isempty(arq_connect.method)
     gastype = arq_connect.method;
-else
+elseif 0
     gastype = 'gwr';
     %error('Method must be declared')
+end
+if ~isfield(params, 'savegas')
+    params.savegas.name = 'gas';
+    params.savegas.resume = false;
+    params.savegas.path = '~/Dropbox/octave_progs/';
 end
 
 if isempty(params)
@@ -80,9 +94,9 @@ else
    %
     
 end
-if  isfield(arq_connect, 'name')
+if  isfield(arq_connect, 'name')&&params.savegas.resume
      params.savegas.name = strcat(arq_connect.name,'-n', num2str(params.nodes), '-s',num2str(size(data,1)),'-q',num2str(params.q),'-i',num2str(labindex));
-else
+elseif params.savegas.resume
     error('Strange arq_connect definition. ''.name'' field is needed.')
 end
 

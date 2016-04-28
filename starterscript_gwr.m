@@ -8,7 +8,7 @@ params = struct();
 
 params.PLOTIT = true; %not really working
 params.RANDOMSTART = false; % if true it overrides the .startingpoint variable
-
+params.RANDOMSET = true;
 n = randperm(size(Data,2),2);
 params.startingpoint = [n(1) n(2)];
 
@@ -16,7 +16,7 @@ params.amax = 500; %greatest allowed age
 params.nodes = NODES; %maximum number of nodes/neurons in the gas
 params.en = 0.006; %epsilon subscript n
 params.eb = 0.2; %epsilon subscript b
-params.MAX_EPOCHS = 3; % this means data will be run over MAX_EPOCHS times
+params.MAX_EPOCHS = 30; % this means data will be run over MAX_EPOCHS times
 
 %Exclusive for gwr
 params.STATIC = true;
