@@ -6,7 +6,8 @@ NODES = 100;
 
 params = struct();
 
-params.PLOTIT = true; %not really working
+params.use_gpu = true;
+params.PLOTIT = false; %not really working
 params.RANDOMSTART = false; % if true it overrides the .startingpoint variable
 params.RANDOMSET = true;
 n = randperm(size(Data,2),2);

@@ -35,6 +35,7 @@ if nargin == 3
     gastype = varargin{2};
     arq_connect = struct();
 else
+    arq_connect = varargin{1};
     gastype = [];
 end
 
@@ -60,7 +61,8 @@ if isempty(params)
     
     params = struct();
     
-    params.PLOTIT = true; %not really working
+    params.use_gpu = false;
+    params.PLOTIT = true; %
     params.RANDOMSTART = false; % if true it overrides the .startingpoint variable
     params.RANDOMSET = false;
     params.savegas.name = 'gas';
@@ -125,6 +127,10 @@ if isfield(params,'plottingstep')
 else
     plottingstep = fix(size(data,2)/20);
 end
+if ~isfield(params,'use_gpu')|| gpuDeviceCount==0
+    params.use_gpu = false;
+    %or break or error or warning...
+end
 
 if PLOTIT
     figure
@@ -135,6 +141,14 @@ datasetsize = size(data,2);
 errorvect = nan(1,MAX_EPOCHS*datasetsize);
 epochvect = nan(1,MAX_EPOCHS*datasetsize);
 nodesvect = nan(1,MAX_EPOCHS*datasetsize);
+
+if  params.use_gpu 
+    data = gpuArray(data);
+    errorvect = gpuArray(errorvect);
+    epochvect = gpuArray(epochvect);
+    nodesvect = gpuArray(nodesvect);
+end
+
 
 switch gastype
     case 'gwr'

@@ -67,13 +67,19 @@ classdef gas
         function gasgas = gas_create(gasgas, params,data)
             gasgas.params = params;
             [gasgas.n1n2, gasgas.ni1,gasgas.ni2] = initialnodes(gasgas, data);
-        
+            
+            %%%% 
+            if gasgas.params.use_gpu  %%% I wanted to cleanly move everything to the gpu only in the end of the gas initialization procedure, so that this code would make sense, but I cannot
+                gasgas.n1n2 = gather(gasgas.n1n2);
+            end
+            
+            
             %%%%%% NEW ADDITION: the adjusting weighting constant parameter
             %%%% this is not so simple because the input vectors
             if isfield(gasgas.params, 'skelldef')&&isfield(gasgas.params.skelldef, 'awk')&&isfield(params, 'layertype')
                 %%% setting awk based on which layer I am in
                 %%% inputlayers, q(1) and layertype influence awk :'(
-                switch params.layertype
+                switch gasgas.params.layertype
                     case 'pos'
                         gasgas.awk = repmat(params.skelldef.awk.pos,1,params.q(1));
                     case 'vel'
@@ -110,7 +116,7 @@ classdef gas
             gasgas.errorvector = [0 0];
             
             gasgas.n = 0; %samplercounter
-            
+            gasgas = gasgas.gas_finalize;
         end
         function gasgas = gwr_create(gasgas, params, data)
             
@@ -143,6 +149,25 @@ classdef gas
                 gasgas.time = 0;
             end
             gasgas.t0 = cputime; % my algorithm is not necessarily static!
+            gasgas = gasgas.gas_finalize;
+        end
+        function gasgas = gas_finalize(gasgas)
+            if isfield(gasgas.params, 'use_gpu')&&gasgas.params.use_gpu 
+                gasgas.C = gpuArray(full(gasgas.C));
+                gasgas.C_age = gpuArray(full(gasgas.C_age));
+                gasgas.A = gpuArray(gasgas.A);
+                gasgas.errorvector = gpuArray(gasgas.errorvector);
+                gasgas.hizero = gpuArray(gasgas.hizero);
+                gasgas.hszero= gpuArray(gasgas.hszero);
+                gasgas.time= gpuArray(gasgas.time);
+                gasgas.t0= gpuArray(gasgas.t0);
+                gasgas.n= gpuArray(gasgas.n);
+                %gasgas.r= gpuArray(gasgas.r);
+                gasgas.h= gpuArray(gasgas.h);
+                %gasgas.a= gpuArray(gasgas.a);
+                gasgas.awk= gpuArray(gasgas.awk);
+                gasgas.n1n2 = gpuArray(gasgas.n1n2);
+            end
         end
     end
 end

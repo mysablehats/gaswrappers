@@ -33,7 +33,11 @@ else
 %     n1 = data(:,ni1);
 %     n2 = data(:,ni2);
 % catch
-         [n1, n2, ni1, ni2, distvector] = findnearest_2(p,data);
+if gpuDeviceCount>0
+    [n1, n2, ni1, ni2, distvector] = findnearest_2gpu(p,data);
+else
+    [n1, n2, ni1, ni2, distvector] = findnearest_2(p,data);
+end
 % end
 %          %    end
 end
@@ -126,6 +130,20 @@ end
 function [n1, n2, ni1, ni2, distvector] = findnearest_2(p,data)
 maxindex = size(data,2);
 distvector = zeros(1,maxindex);
+for i = 1:maxindex
+    distvector(i) = norm(data(:,i)- p);
+end
+[~,ni1] = min(distvector);
+n1 = data(:,ni1);
+pushdist = distvector(ni1);
+distvector(ni1) = NaN; % I use some cleverness. Hopefully this is fast.
+[~,ni2] = min(distvector);
+n2 = data(:,ni2);
+distvector(ni1) = pushdist;
+end
+function [n1, n2, ni1, ni2, distvector] = findnearest_2gpu(p,data)
+maxindex = size(data,2);
+distvector = zeros(1,maxindex,'gpuArray');
 for i = 1:maxindex
     distvector(i) = norm(data(:,i)- p);
 end
