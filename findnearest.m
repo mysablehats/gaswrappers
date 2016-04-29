@@ -10,7 +10,10 @@ function [n1, n2, ni1, ni2, distvector] = findnearest(varargin)
 % benchmarked it...
 
 if isempty(varargin)||strcmp(varargin{1},'test')
-    findnearest_test()
+    %findnearest_test()
+   %load('findnearest_workspace.mat')
+   load('findnearest_workspace_cpu.mat')
+   for i=1:10000, [n1, n2, ni1, ni2, distvector] = findnearest_6gpu(p,data); end;
 else
     p = varargin{1};
     data =varargin{2};
@@ -33,12 +36,23 @@ else
 %     n1 = data(:,ni1);
 %     n2 = data(:,ni2);
 % catch
-if gpuDeviceCount>0
-    [n1, n2, ni1, ni2, distvector] = findnearest_2gpu(p,data);
-else
-    [n1, n2, ni1, ni2, distvector] = findnearest_2(p,data);
-end
+% if gpuDeviceCount>0
+%     [n1, n2, ni1, ni2, distvector] = findnearest_6gpu(p,data);
+% %     disp('gpuversions')
+% %     AAA = tic; for i=1:10, [n1, n2, ni1, ni2, distvector] = findnearest_1gpu(p,data); end; toc(AAA)
+% %     AAA = tic; for i=1:10,[n1, n2, ni1, ni2, distvector] = findnearest_2gpu(p,data); end; toc(AAA)
+% %     AAA = tic; for i=1:10,[n1, n2, ni1, ni2, distvector] = findnearest_3gpu(p,data); end; toc(AAA)
+% %     AAA = tic; for i=1:10,[n1, n2, ni1, ni2, distvector] = findnearest_4gpu(p,data); end; toc(AAA)
+% %     disp('cpuversions')
+% %     AAA = tic; for i=1:10,[n1, n2, ni1, ni2, distvector] = findnearest_1(p,data); end; toc(AAA)
+% %     AAA = tic; for i=1:10,[n1, n2, ni1, ni2, distvector] = findnearest_2(p,data); end; toc(AAA)
+% %     AAA = tic; for i=1:10,[n1, n2, ni1, ni2, distvector] = findnearest_3(p,data); end; toc(AAA)
+% %     AAA = tic; for i=1:10,[n1, n2, ni1, ni2, distvector] = findnearest_4(p,data); end; toc(AAA)
+% %     
+% else
+    [n1, n2, ni1, ni2, distvector] = findnearest_6gpu(p,data); %%% the fully vectorized version seems to be the fastest of them all both in gpu and cpu
 % end
+% % end
 %          %    end
 end
 end
@@ -127,6 +141,18 @@ ni2 = index(2);
 n1 = data(:,ni1);
 n2 = data(:,ni2);
 end
+function [n1, n2, ni1, ni2, distvector] = findnearest_1gpu(p,data)
+maxindex = size(data,2);
+distvector = zeros(1,maxindex, 'gpuArray');
+for i = 1:maxindex
+    distvector(i) = norm(data(:,i)- p);
+end
+[~, index] = sort(distvector);
+ni1 = index(1);
+ni2 = index(2);
+n1 = data(:,ni1);
+n2 = data(:,ni2);
+end
 function [n1, n2, ni1, ni2, distvector] = findnearest_2(p,data)
 maxindex = size(data,2);
 distvector = zeros(1,maxindex);
@@ -176,6 +202,27 @@ end
 n1 = data(:,ni1);
 n2 = data(:,ni2);
 end
+function [n1, n2, ni1, ni2, distvector] = findnearest_3gpu(p,data)
+maxindex = size(data,2);
+distvector = inf(1,maxindex,'gpuArray');
+ni1 = 0;
+ni2 = 0;
+a = 0;
+for i = 1:maxindex
+    a = norm(data(:,i)- p);
+    if a < distvector(1)
+        distvector(2) = distvector(1);
+        ni2 = ni1;
+        distvector(1) = a;
+        ni1 = i;
+    elseif a < distvector(2)
+        distvector(2) = a;
+        ni2 = i;
+    end
+end
+n1 = data(:,ni1);
+n2 = data(:,ni2);
+end
 function [n1, n2, ni1, ni2, distvector] = findnearest_4(p,data)
 maxindex = size(data,2);
 distvector = inf(1,maxindex);
@@ -198,4 +245,63 @@ for i = 1:maxindex
 end
 n1 = data(:,ni1);
 n2 = data(:,ni2);
+end
+function [n1, n2, ni1, ni2, distvector] = findnearest_4gpu(p,data)
+maxindex = size(data,2);
+distvector = inf(1,maxindex,'gpuArray');
+ni1 = 0;
+ni2 = 0;
+a = 0;
+ppp = repmat(p,1,maxindex);
+dada = data - ppp;
+for i = 1:maxindex
+    a = norm(dada(:,i));
+    if a < distvector(1)
+        distvector(2) = distvector(1);
+        ni2 = ni1;
+        distvector(1) = a;
+        ni1 = i;
+    elseif a < distvector(2)
+        distvector(2) = a;
+        ni2 = i;
+    end
+end
+n1 = data(:,ni1);
+n2 = data(:,ni2);
+end
+function [n1, n2, ni1, ni2, distvector] = findnearest_5gpu(p,data)
+maxindex = size(data,2);
+distvector = inf(1,maxindex,'gpuArray');
+ni1 = 0;
+ni2 = 0;
+ppp = repmat(p,1,maxindex);
+dada = data - ppp;
+for i = 1:maxindex
+    distvector(i) = norm(dada(:,i));
+end
+[~,ni1] = min(distvector);
+n1 = data(:,ni1);
+pushdist = distvector(ni1);
+distvector(ni1) = NaN; % I use some cleverness. Hopefully this is fast.
+[~,ni2] = min(distvector);
+n2 = data(:,ni2);
+distvector(ni1) = pushdist;
+end
+function [n1, n2, ni1, ni2, distvector] = findnearest_6gpu(p,data)
+maxindex = size(data,2);
+% distvector = inf(1,maxindex,'gpuArray');
+% ni1 = 0;
+% ni2 = 0;
+ppp = repmat(p,1,maxindex);
+dada = data - ppp;
+dada = dada.*dada;
+distvector = sum(dada).^(1/2);
+
+[~,ni1] = min(distvector);
+n1 = data(:,ni1);
+pushdist = distvector(ni1);
+distvector(ni1) = NaN; % I use some cleverness. Hopefully this is fast.
+[~,ni2] = min(distvector);
+n2 = data(:,ni2);
+distvector(ni1) = pushdist;
 end

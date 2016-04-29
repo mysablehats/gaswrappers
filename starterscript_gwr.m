@@ -2,22 +2,22 @@
 %load('../share/local_uniform_2d.mat')
 %Data = simplecluster_dataset;
 %pkg load image %statistics
-NODES = 100;
+NODES = 1000;
 
 params = struct();
 
-params.use_gpu = true;
-params.PLOTIT = false; %not really working
+params.use_gpu = false;
+params.PLOTIT = false; 
 params.RANDOMSTART = false; % if true it overrides the .startingpoint variable
 params.RANDOMSET = true;
 n = randperm(size(Data,2),2);
 params.startingpoint = [n(1) n(2)];
 
-params.amax = 500; %greatest allowed age
+params.amax = 50; %greatest allowed age
 params.nodes = NODES; %maximum number of nodes/neurons in the gas
 params.en = 0.006; %epsilon subscript n
 params.eb = 0.2; %epsilon subscript b
-params.MAX_EPOCHS = 30; % this means data will be run over MAX_EPOCHS times
+params.MAX_EPOCHS = 10; % this means data will be run over MAX_EPOCHS times
 
 %Exclusive for gwr
 params.STATIC = true;
@@ -33,13 +33,27 @@ params.tn = 3.33;
 % params.alpha                    = .5;     % q and f units error reduction constant.
 % params.d                           = .99;   % Error reduction factor.
 % 
+% 
+% 
+% tic
+% A = gas_wrapper(Data,params,'gwr');
+% if params.PLOTIT
+%     subplot(1,2,1)
+%     hold on
+% end
+% plot(Data(1,:),Data(2,:), '.g', A(1,:)', A(2,:)', '.r')
+% 
+% toc
 
-
+params.use_gpu = true;
 tic
 A = gas_wrapper(Data,params,'gwr');
-subplot(1,2,1);
-hold on
+if params.PLOTIT
+    subplot(1,2,1)
+    hold on
+end
 plot(Data(1,:),Data(2,:), '.g', A(1,:)', A(2,:)', '.r')
 
 toc
+
 %scatter(A(1,:)', A(2,:)')

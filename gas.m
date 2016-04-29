@@ -17,6 +17,7 @@ classdef gas
         ni1
         ni2
         n1n2
+        gwr
     end
     methods
         function X = hs(gasgas, t)
@@ -66,6 +67,7 @@ classdef gas
         end
         function gasgas = gas_create(gasgas, params,data)
             gasgas.params = params;
+            gasgas = gasgas.gas_finalize;
             [gasgas.n1n2, gasgas.ni1,gasgas.ni2] = initialnodes(gasgas, data);
             
             %%%% 
@@ -121,8 +123,8 @@ classdef gas
         function gasgas = gwr_create(gasgas, params, data)
             
             gasgas = gasgas.gas_create(params,data);
-       
- 
+            %%% creating gwr structure
+            gasgas.gwr = struct('s',[],'t',[],'wi',[],'wr',[],'ws',[],'num_of_neighbours',[],'neighbours',[]);
             gasgas.A = zeros(size(gasgas.n1n2,1),params.nodes);
             gasgas.A(:,[1 2]) = gasgas.n1n2;
             
@@ -162,11 +164,31 @@ classdef gas
                 gasgas.time= gpuArray(gasgas.time);
                 gasgas.t0= gpuArray(gasgas.t0);
                 gasgas.n= gpuArray(gasgas.n);
-                %gasgas.r= gpuArray(gasgas.r);
+                gasgas.r= gpuArray(gasgas.r);
                 gasgas.h= gpuArray(gasgas.h);
-                %gasgas.a= gpuArray(gasgas.a);
+                gasgas.a= gpuArray(gasgas.a);
                 gasgas.awk= gpuArray(gasgas.awk);
                 gasgas.n1n2 = gpuArray(gasgas.n1n2);
+                gasgas.params.en = gpuArray(gasgas.params.en);
+                gasgas.params.eb = gpuArray(gasgas.params.eb);
+                gasgas.params.at = gpuArray(gasgas.params.at);
+                gasgas.params.ab = gpuArray(gasgas.params.ab);
+                gasgas.params.an = gpuArray(gasgas.params.an);
+                gasgas.params.tb = gpuArray(gasgas.params.tb);
+                gasgas.params.tn = gpuArray(gasgas.params.tn);
+                gasgas.params.h0 = gpuArray(gasgas.params.h0);
+                gasgas.params.amax = gpuArray(gasgas.params.amax);
+                gasgas.params.STATIC = gpuArray(gasgas.params.STATIC);
+                gasgas.params.eb = gpuArray(gasgas.params.eb);
+                gasgas.params.nodes = gpuArray(gasgas.params.nodes);
+                
+                gasgas.gwr.s = gpuArray();
+                gasgas.gwr.t = gpuArray();
+                gasgas.gwr.wi = gpuArray();
+                gasgas.gwr.wr = gpuArray();
+                gasgas.gwr.ws = gpuArray();
+                gasgas.gwr.num_of_neighbours = gpuArray();
+                gasgas.gwr.neighbours = gpuArray();
             end
         end
     end
