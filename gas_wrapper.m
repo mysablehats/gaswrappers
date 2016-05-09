@@ -187,11 +187,11 @@ if isfield(params, 'savegas')&&params.savegas.resume
                     gasgas = gasgas.gng_create(params,data);
                 otherwise
                     error('Unknown method.')
-            end           
+            end
         end
-    end
-else
-    dbgmsg('Didn''t find gas with the same characteristics as this one. Will use a new gas with name:',params.savegas.name,1)
+    else
+        dbgmsg('Didn''t find gas with the same characteristics as this one. Will use a new gas with name:\t',params.savegas.name,1)
+    end    
 end
 
 
@@ -226,7 +226,7 @@ for num_of_epochs = 1:MAX_EPOCHS % strange idea: go through the dataset more tim
     gasgas = gasgas.update_epochs(num_of_epochs);
     
     %%% now save the resulting gas
-    if isfield(params, 'savegas')&&params.savegas.resume
+    if isfield(params, 'savegas')&&isfield(params.savegas,'save') &&params.savegas.save
         save(strcat(savegas,'-e',num2str(num_of_epochs)), 'gasgas')
     end
 end
