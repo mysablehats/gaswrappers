@@ -67,6 +67,7 @@ classdef gas
         end
         function gasgas = gas_create(gasgas, params,data)
             gasgas.params = params;
+            gasgas.params.accumulatedepochs = 0;
             gasgas = gasgas.gas_finalize;
             [gasgas.n1n2, gasgas.ni1,gasgas.ni2] = initialnodes(gasgas, data);
             
@@ -189,6 +190,13 @@ classdef gas
                 gasgas.gwr.ws = gpuArray();
                 gasgas.gwr.num_of_neighbours = gpuArray();
                 gasgas.gwr.neighbours = gpuArray();
+            end
+        end
+        function gasgas = update_epochs(gasgas,epochs)
+            if isfield(gasgas.params, 'accumulatedepochs')
+                gasgas.params.accumulatedepochs = gasgas.params.accumulatedepochs + epochs;
+            else
+                gasgas.params.accumulatedepochs = epochs;
             end
         end
     end

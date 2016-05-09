@@ -68,6 +68,7 @@ if isempty(params)
     params.savegas.name = 'gas';
     params.savegas.resume = false;
     params.savegas.path = '~/Dropbox/octave_progs/';
+    params.savegas.gasindex = 1;
     
     n = randperm(size(data,2),2);
     params.startingpoint = [n(1) n(2)];
@@ -97,7 +98,7 @@ else
     
 end
 if  isfield(arq_connect, 'name')&&params.savegas.resume
-     params.savegas.name = strcat(arq_connect.name,'-n', num2str(params.nodes), '-s',num2str(size(data,1)),'-q',num2str(params.q),'-i',num2str(labindex));
+     params.savegas.name = strcat(arq_connect.name,'-n', num2str(params.nodes), '-s',num2str(size(data,1)),'-q',num2str(params.q),'-i',num2str(params.savegas.gasindex));
 elseif params.savegas.resume
     error('Strange arq_connect definition. ''.name'' field is needed.')
 end
@@ -126,6 +127,10 @@ if isfield(params,'plottingstep')
     end    
 else
     plottingstep = fix(size(data,2)/20);
+end
+if ~isfield(params,'use_gpu')|| gpuDeviceCount==0
+    params.use_gpu = false;
+    %or break or error or warning...
 end
 
 if PLOTIT
@@ -163,7 +168,7 @@ end
 if isfield(params, 'savegas')&&params.savegas.resume
     savegas = strcat(params.savegas.path,'/', params.savegas.name);
     %%% checks if savegas exists
-    if exist(savegas,'file') %%% if it does, then it loads it, because it should have the same
+    if 0&&exist(savegas,'file') %%% if it does, then it loads it, because it should have the same %% disabled
         dbgmsg('Found gas with the same characteristics as this one. Will try loading gas',params.savegas.name,1)
         load(savegas)
         try
@@ -217,14 +222,18 @@ for num_of_epochs = 1:MAX_EPOCHS % strange idea: go through the dataset more tim
         end        
     end
     
+    %%% updating the number of epochs the gas has run
+    gasgas = gasgas.update_epochs(num_of_epochs);
+    
     %%% now save the resulting gas
     if isfield(params, 'savegas')&&params.savegas.resume
-        save(savegas, 'gasgas')
+        save(strcat(savegas,'-e',num2str(num_of_epochs)), 'gasgas')
     end
 end
 outparams.graph.errorvect = errorvect;
 outparams.graph.epochvect = epochvect;
 outparams.graph.nodesvect = nodesvect;
+outparams.accumulatedepochs = gasgas.params.accumulatedepochs;
 outparams.initialnodes = [gasgas.ni1,gasgas.ni2];
 A = gasgas.A;
 C = gasgas.C;
