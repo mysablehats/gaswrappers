@@ -125,7 +125,10 @@ else
             %AA = B;
          case 'all'
             a = size(skelldef.pos,2);
-            AA(skelldef.elementorder(1:a/assumed_q),:,:) = B(1:a/assumed_q,:,:);
+            AA(skelldef.elementorder(1:a/3),:,:) = B(1:a/3,:,:);
+            %%%no idea what I wanted with the following line. I will change
+            %%%to what I think is right...
+            %AA(skelldef.elementorder(1:a/assumed_q),:,:) = B(1:a/assumed_q,:,:);
             %BB = AA(1:skelldef.length/6,:,:);
             AA = reshape(AA,[],c*assumed_q);
             %%% Wait, no double work, let us be smart about this// ok,
