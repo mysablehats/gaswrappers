@@ -19,7 +19,7 @@ classdef gas
         n1n2
         gwr
     end
-    methods
+    methods        
         function X = hs(gasgas, t)
             h0 = gasgas.params.h0;%= 1;
             ab = gasgas.params.ab;%= 0.95;
@@ -67,6 +67,7 @@ classdef gas
         end
         function gasgas = gas_create(gasgas, params,data)
             gasgas.params = params;
+            gasgas.params.accumulatedepochs = 0;
             gasgas = gasgas.gas_finalize;
             [gasgas.n1n2, gasgas.ni1,gasgas.ni2] = initialnodes(gasgas, data);
             
@@ -154,7 +155,7 @@ classdef gas
             gasgas = gasgas.gas_finalize;
         end
         function gasgas = gas_finalize(gasgas)
-            if isfield(gasgas.params, 'use_gpu')&&gasgas.params.use_gpu 
+            if isfield(gasgas.params, 'use_gpu')&&gasgas.params.use_gpu %%%%% this is very very bad. It is working, but it is very slow; considerable work is needed to make this faster. Alternatives include do some batch presentation of points, such it is used on SOMs or use gpu just for calculating distances; these ideas need to be tested to see if they make sense.
                 gasgas.C = gpuArray(full(gasgas.C));
                 gasgas.C_age = gpuArray(full(gasgas.C_age));
                 gasgas.A = gpuArray(gasgas.A);
@@ -189,6 +190,13 @@ classdef gas
                 gasgas.gwr.ws = gpuArray();
                 gasgas.gwr.num_of_neighbours = gpuArray();
                 gasgas.gwr.neighbours = gpuArray();
+            end
+        end
+        function gasgas = update_epochs(gasgas,epochs)
+            if isfield(gasgas.params, 'accumulatedepochs')
+                gasgas.params.accumulatedepochs = gasgas.params.accumulatedepochs + epochs;
+            else
+                gasgas.params.accumulatedepochs = epochs;
             end
         end
     end
